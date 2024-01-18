@@ -1,0 +1,17 @@
+[Unit]
+Description=Docker extra: {{ docker_extra_name | mandatory }}
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment="TERM=dumb"
+RemainAfterExit=true
+
+ExecStartPre=-/usr/bin/docker start "{{ docker_extra_name | mandatory }}"
+ExecStartPre=-/usr/bin/docker run -d --name "{{ docker_extra_name | mandatory }}" "{{ docker_extra_parameters | mandatory }}"
+ExecStart=/usr/bin/env bash -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" | grep -q -x "{{ docker_extra_name | mandatory }}"'
+ExecStop=/usr/bin/docker stop "{{ docker_extra_name | mandatory }}"
+
+[Install]
+WantedBy=multi-user.target
