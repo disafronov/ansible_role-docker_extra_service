@@ -26,15 +26,29 @@
   register: docker_extra_service_parameters
   no_log: true
 
-- name: Create Docker extra service env
+- name: Create Docker extra service working directory
+  when:
+    - item.value.parameters is defined
+    - item.value.parameters != None
+    - item.value.parameters | length > 0
+  with_dict: "{{ docker_extra_service }}"
+  ansible.builtin.file:
+    path: "/opt/docker-extra_{{ item.key }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  no_log: true
+
+- name: Create Docker extra env
   when:
     - item.value.env is defined
     - item.value.env != None
     - item.value.env | length > 0
   with_dict: "{{ docker_extra_service }}"
   ansible.builtin.template:
-    src: docker-extra.service.env.j2
-    dest: "/etc/systemd/system/docker-extra_{{ item.key }}.service.env"
+    src: docker-extra.env.j2
+    dest: "/opt/docker-extra_{{ item.key }}/.env"
     owner: root
     group: root
     mode: "0644"
