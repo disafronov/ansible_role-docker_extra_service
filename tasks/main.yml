@@ -42,9 +42,9 @@
 
 - name: Create Docker extra env
   when:
-    - item.value.env is defined
-    - item.value.env != None
-    - item.value.env | length > 0
+    - item.value.parameters is defined
+    - item.value.parameters != None
+    - item.value.parameters | length > 0
   with_dict: "{{ docker_extra_service }}"
   ansible.builtin.template:
     src: docker-extra.env.j2
