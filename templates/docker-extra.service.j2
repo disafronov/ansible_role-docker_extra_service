@@ -7,11 +7,14 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-Environment="TERM=dumb"
 RemainAfterExit=true
 
-ExecStart=/usr/bin/env sh -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" -a | grep -q -x "{{ item.key }}" && docker start "{{ item.key }}" || docker run -d --name "{{ item.key }}" {{ item.value.parameters }}'
-ExecStop=/usr/bin/docker stop "{{ item.key }}"
+EnvironmentFile=/etc/systemd/system/docker-extra_{{ item.key }}.service.env
+Environment="TERM=dumb"
+
+ExecStart=/usr/bin/env sh -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" -a | grep -q -x {{ item.key }} && docker start {{ item.key }} || docker run -d --name {{ item.key }} {{ item.value.parameters }}'
+ExecReload=/usr/bin/env sh -c 'docker rm -f {{ item.key }} && docker run -d --name {{ item.key }} {{ item.value.parameters }}'
+ExecStop=/usr/bin/docker stop {{ item.key }}
 
 [Install]
 WantedBy=multi-user.target
