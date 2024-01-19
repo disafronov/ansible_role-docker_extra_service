@@ -1,18 +1,37 @@
 ---
 
-- name: "Create Docker extra service : {{ docker_extra_name | mandatory }}"
+- name: "Create Docker extra service"
+  when:
+    - item.value.parameters is defined
+    - item.value.parameters != None
+    - item.value.parameters | length > 0
+  with_dict: "{{ docker_extra_service }}"
   ansible.builtin.template:
     src: docker-extra.service.j2
-    dest: "/etc/systemd/system/docker-extra_{{ docker_extra_name | mandatory }}.service"
+    dest: "/etc/systemd/system/docker-extra_{{ item.key }}.service"
     owner: root
     group: root
     mode: "0644"
-  register: docker_extra_service
+  register: docker_extra_service_parameters
 
-- name: "(Re)start Docker extra service : {{ docker_extra_name | mandatory }}"
-  when: docker_extra_service.changed
+- name: "Create Docker extra service env"
+  when:
+    - item.value.env is defined
+    - item.value.env != None
+    - item.value.env | length > 0
+  with_dict: "{{ docker_extra_service }}"
+  ansible.builtin.template:
+    src: docker-extra.service.env.j2
+    dest: "/etc/systemd/system/docker-extra_{{ item.key }}.service.env"
+    owner: root
+    group: root
+    mode: "0644"
+  register: docker_extra_service_env
+
+- name: "(Re)start Docker extra service"
+  with_items: "{{ (docker_extra_service_parameters.results + docker_extra_service_env.results) | selectattr('changed', 'equalto', true) | map(attribute='item.key') | list | unique }}"
   ansible.builtin.systemd:
     state: restarted
     enabled: true
     daemon_reload: true
-    name: "docker-extra_{{ docker_extra_name | mandatory }}.service"
+    name: "docker-extra_{{ item }}.service"
