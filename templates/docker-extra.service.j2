@@ -1,5 +1,7 @@
+{{ ansible_managed | comment }}
+
 [Unit]
-Description=Docker extra: {{ docker_extra_name | mandatory }}
+Description=Docker extra: {{ item.key }}
 After=docker.service
 Requires=docker.service
 
@@ -8,8 +10,8 @@ Type=oneshot
 Environment="TERM=dumb"
 RemainAfterExit=true
 
-ExecStart=/usr/bin/env sh -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" -a | grep -q -x "{{ docker_extra_name | mandatory }}" && docker start "{{ docker_extra_name | mandatory }}" || docker run -d --name "{{ docker_extra_name | mandatory }}" {{ docker_extra_parameters | mandatory }}'
-ExecStop=/usr/bin/docker stop "{{ docker_extra_name | mandatory }}"
+ExecStart=/usr/bin/env sh -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" -a | grep -q -x "{{ item.key }}" && docker start "{{ item.key }}" || docker run -d --name "{{ item.key }}" {{ item.value.parameters }}'
+ExecStop=/usr/bin/docker stop "{{ item.key }}"
 
 [Install]
 WantedBy=multi-user.target
