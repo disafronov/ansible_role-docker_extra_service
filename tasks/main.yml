@@ -1,6 +1,13 @@
 ---
 
-- name: "Create Docker extra service"
+- name: Fail on spaces in service names
+  with_dict: "{{ docker_extra_service }}"
+  ansible.builtin.assert:
+    that:
+      - "' ' not in item.key"
+  no_log: true
+
+- name: Create Docker extra service
   when:
     - item.value.parameters is defined
     - item.value.parameters != None
@@ -13,8 +20,9 @@
     group: root
     mode: "0644"
   register: docker_extra_service_parameters
+  no_log: true
 
-- name: "Create Docker extra service env"
+- name: Create Docker extra service env
   when:
     - item.value.env is defined
     - item.value.env != None
@@ -27,11 +35,12 @@
     group: root
     mode: "0644"
   register: docker_extra_service_env
+  no_log: true
 
-- name: "(Re)start Docker extra service"
+- name: (Re)start Docker extra service
   with_items: "{{ (docker_extra_service_parameters.results + docker_extra_service_env.results) | selectattr('changed', 'equalto', true) | map(attribute='item.key') | list | unique }}"
   ansible.builtin.systemd:
-    state: restarted
+    state: reloaded
     enabled: true
     daemon_reload: true
     name: "docker-extra_{{ item }}.service"
