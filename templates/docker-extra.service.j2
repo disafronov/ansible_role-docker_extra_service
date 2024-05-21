@@ -13,9 +13,9 @@ Environment="TERM=dumb"
 
 WorkingDirectory=/opt/docker-extra_{{ item.key }}
 
-ExecStart=/usr/bin/sh -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" -a | grep -q -x {{ item.key }} && docker start {{ item.key }} || docker run -d --name {{ item.key }} --env-file .env {{ item.value.parameters }}'
-ExecReload=/usr/bin/sh -c 'docker rm -f {{ item.key }} && docker run -d --name {{ item.key }} --env-file .env {{ item.value.parameters }}'
-ExecStop=/usr/bin/sh -c 'docker stop {{ item.key }}'
+ExecStart=/usr/bin/sh -c 'docker ps --format "{% raw %}{{.Names}}{% endraw %}" -a | grep -q -x {{ item.key }} && docker start {{ item.key }} || docker run --rm -d --name {{ item.key }} --env-file .env {{ item.value.parameters }}'
+ExecReload=/usr/bin/sh -c 'docker rm -f {{ item.key }} && docker run --rm -d --name {{ item.key }} --env-file .env {{ item.value.parameters }}'
+ExecStop=/usr/bin/sh -c 'docker rm -f {{ item.key }}'
 
 [Install]
 WantedBy=multi-user.target
