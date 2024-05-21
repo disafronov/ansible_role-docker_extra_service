@@ -62,7 +62,7 @@
     - docker_extra_service | length > 0
   with_items: "{{ (docker_extra_service_parameters.results + docker_extra_service_env.results) | selectattr('changed', 'equalto', true) | map(attribute='item.key') | list | unique }}"
   ansible.builtin.systemd:
-    state: reloaded
+    state: restarted
     enabled: true
     daemon_reload: true
     name: "docker-extra_{{ item }}.service"
